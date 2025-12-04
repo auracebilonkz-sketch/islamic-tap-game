@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islomiy Tap Game</title>
+    <style>
+        :root {
+            --primary: #1a5e1a;
+            --primary-dark: #0d3b0d;
+            --gold: #ffd700;
+            --gold-soft: rgba(255, 215, 0, 0.25);
+            --card-bg: rgba(0, 0, 0, 0.45);
+            --border-soft: rgba(255, 215, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, #12310f 0%, #050c05 45%, #020402 100%);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .header {
+            margin-bottom: 22px;
+        }
+
+        .header h1 {
+            color: var(--gold);
+            font-size: 26px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+        }
+
+        /* STATISTIKA */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: var(--card-bg);
+            padding: 14px 12px;
+            border-radius: 18px;
+            margin: 22px 0;
+            border: 2px solid var(--border-soft);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .stat-box {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        /* PROGRESS BAR */
+        .progress-container {
+            margin: 16px 0 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 14px;
+            border: 2px solid var(--border-soft);
+            backdrop-filter: blur(4px);
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffb347);
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+
+        /* KAABA + KITOB GATE (TAP ZONA) */
+        .masjid-wrapper {
+            margin-top: 20px;
+        }
+
+        .masjid-gate {
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 3 / 4;
+            margin: 18px auto 0;
+            background:
+                linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.2)),
+                url("https://images.unsplash.com/photo-1504617450508-813540c35f5b?auto=format&fit=crop&w=800&q=80");
+            /* Kaaba + ziyoratchilar foni */
+            background-size: cover;
+            background-position: center;
+            border-radius: 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.9);
+            border: 3px solid var(--gold);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+        }
+
+        .masjid-gate::before {
+            /* Mecca Gate uslubida yuqoridan oltin nurlar */
+            content: "";
+            position: absolute;
+            inset: -40%;
+            background:
+                radial-gradient(circle at top, rgba(255, 215, 0, 0.22), transparent 55%),
+                radial-gradient(circle at bottom, rgba(0, 0, 0, 0.7), transparent 60%);
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .masjid-gate:active {
+            transform: scale(0.97);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.75);
+        }
+
+        /* Glow chiziq */
+        .gate-shine {
+            position: absolute;
+            width: 180%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 215, 0, 0.15),
+                rgba(255, 255, 255, 0.3),
+                rgba(255, 215, 0, 0.15),
+                transparent
+            );
+            animation: shine 4s linear infinite;
+            top: 0;
+            left: -100%;
+            opacity: 0.5;
+            mix-blend-mode: screen;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .gate-content {
+            position: relative;
+            padding-bottom: 26px;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Dumaloq TAP zona */
+        .tap-circle {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at top, rgba(255, 255, 255, 0.18), transparent 60%),
+                radial-gradient(circle at bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 1));
+            border: 4px solid var(--gold);
+            box-shadow:
+                0 0 30px rgba(0, 0, 0, 0.9),
+                0 0 25px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Kitob timsoli (Mecca Gate uslubida) */
+        .book-icon {
+            width: 120px;
+            height: 68px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4a3217, #8b5a2b);
+            box-shadow:
+                0 6px 12px rgba(0, 0, 0, 0.8),
+                inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .book-icon::before,
+        .book-icon::after {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border-radius: 6px;
+            border: 2px solid rgba(255, 215, 0, 0.7);
+        }
+
+        .book-icon::after {
+            inset: 16px;
+            border-style: dashed;
+            opacity: 0.7;
+        }
+
+        .book-stand {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 24px;
+            background: linear-gradient(90deg, #3b2614, #6e441f);
+            border-radius: 14px 14px 6px 6px;
+            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.9);
+        }
+
+        .arabic-text {
+            font-size: 32px;
+            font-family: 'Traditional Arabic', 'Amiri', 'Scheherazade', serif;
+            margin-top: 4px;
+            color: var(--gold);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 1);
+            line-height: 1.3;
+        }
+
+        .tap-text {
+            font-size: 16px;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        /* MENYU */
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin: 28px 0 18px;
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #2e8b57 0%, #3cb371 100%);
+            color: white;
+            border: none;
+            padding: 16px 12px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:hover {
+            background: linear-gradient(145deg, #3cb371 0%, #4caf50 100%);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ANIMATSIYALAR */
+        .tap-animation {
+            position: absolute;
+            color: var(--gold);
+            font-size: 30px;
+            font-weight: 700;
+            animation: floatUp 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 1);
+            z-index: 10;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-40px) scale(1.2);
+                opacity: 0.9;
+            }
+            100% {
+                transform: translateY(-100px) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        /* NOTIFICATION */
+        .notification {
+            position: fixed;
+            top: 22px;
+            right: 18px;
+            background: linear-gradient(145deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 14px 22px;
+            border-radius: 14px;
+            display: none;
+            animation: slideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--gold);
+            font-size: 14px;
+            font-weight: 600;
+            max-width: 320px;
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateX(100%) translateY(-10px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 2000;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: radial-gradient(circle at top, #1f6a1f 0%, #0b2f0b 40%, #041304 100%);
+            padding: 24px;
+            border-radius: 24px;
+            max-width: 550px;
+            width: 100%;
+            border: 3px solid var(--gold);
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.35);
+        }
+
+        .modal-title {
+            color: var(--gold);
+            margin: 0;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #ff6666;
+            transform: scale(1.04);
+        }
+
+        /* KARTALAR */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .card-item {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 18px;
+            border-radius: 14px;
+            text-align: center;
+            border: 2px solid var(--gold);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-item:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6);
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .card-emoji {
+            font-size: 42px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.7));
+        }
+
+        .card-name {
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 14px;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .card-arabic {
+            font-size: 20px;
+            font-family: 'Traditional Arabic', serif;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 6px;
+            direction: rtl;
+        }
+
+        .card-type {
+            font-size: 12px;
+            color: #ddd;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .card-rarity {
+            font-size: 11px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .card-price {
+            background: var(--gold-soft);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--gold);
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .buy-btn {
+            background: linear-gradient(145deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .buy-btn:hover:not(:disabled) {
+            background: linear-gradient(145deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-2px);
+        }
+
+        .buy-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* AUTO SAVOB INDICATOR */
+        .auto-savob {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            background: linear-gradient(145deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 14px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+            border: 2px solid #64b5f6;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 26px;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 13px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        /* LOADING */
+        .loading {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            color: var(--gold);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .stats {
+                padding-inline: 10px;
+            }
+
+            .masjid-gate {
+                max-width: 100%;
+                border-radius: 22px;
+            }
+
+            .tap-circle {
+                width: 150px;
+                height: 150px;
+            }
+
+            .arabic-text {
+                font-size: 26px;
+            }
+
+            .tap-text {
+                font-size: 14px;
+                letter-spacing: 0.2em;
+            }
+
+            .menu {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕋 ISLOMIY TAP GAME</h1>
+            <p>Kaaba oldidagi kitobga (TAP) bosing va payg'ambar kartalarini to'plang.</p>
+        </div>
+
+        <!-- STATISTIKA -->
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="sawab">0</div>
+                <div class="stat-label">SAVOB</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="cardsCount">0</div>
+                <div class="stat-label">KARTALAR</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="level">1</div>
+                <div class="stat-label">DARAJA</div>
+            </div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>Keyingi payg'ambar:</span>
+                <span id="nextProphet">Odam (Od) payg'ambar</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div style="margin-top: 6px; font-size: 13px; color: var(--gold);">
+                <span id="progressText">0%</span> • <span id="neededSawab">1000 savob kerak</span>
+            </div>
+        </div>
+
+        <!-- KAABA + KITOB TAP -->
+        <div class="masjid-wrapper">
+            <div class="masjid-gate" id="gate" onclick="tapMasjid()">
+                <div class="gate-shine"></div>
+                <div class="gate-content">
+                    <div class="tap-circle">
+                        <div class="book-icon"></div>
+                        <div class="book-stand"></div>
+                    </div>
+                    <div class="arabic-text" id="kalima">سُبْحَانَ اللَّهِ</div>
+                    <div class="tap-text">BOSING</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENYU -->
+        <div class="menu">
+            <button class="btn" onclick="showProphets()">
+                <span>🕌</span> PAYG'AMBARLAR
+            </button>
+            <button class="btn" onclick="showShop()">
+                <span>🛒</span> DO'KON
+            </button>
+            <button class="btn" onclick="showProfile()">
+                <span>👤</span> PROFIL
+            </button>
+            <button class="btn" onclick="showStats()">
+                <span>📊</span> STATISTIKA
+            </button>
+            <button class="btn" onclick="changeLanguage()">
+                <span>🌍</span> TIL
+            </button>
+            <button class="btn" onclick="openBot()">
+                <span>🤖</span> BOTGA QAYTISH
+            </button>
+        </div>
+
+        <!-- AUTO SAVOB INDICATOR -->
+        <div class="auto-savob" id="autoSavob" style="display: none;">
+            <span>⚡</span>
+            <span id="autoSavobText">Har soniya: +0 savob</span>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            💫 Har bir bosish — +1 savob • Har bir payg'ambar — +5 savob/har soniya
+        </div>
+
+        <!-- NOTIFICATION -->
+        <div class="notification" id="notification">
+            ✅ +1 Savob!
+        </div>
+
+        <!-- LOADING -->
+        <div class="loading" id="loading">
+            Yuklanmoqda...
+        </div>
+    </div>
+
+    <script>
+        // ==================== ASOSIY O'ZGARUVCHILAR ====================
+        let sawab = localStorage.getItem('sawab') ? parseInt(localStorage.getItem('sawab')) : 0;
+        let level = localStorage.getItem('level') ? parseInt(localStorage.getItem('level')) : 1;
+        let taps = localStorage.getItem('taps') ? parseInt(localStorage.getItem('taps')) : 0;
+        let autoSawabPerSecond = localStorage.getItem('autoSawab') ? parseInt(localStorage.getItem('autoSawab')) : 0;
+        let lastUpdate = localStorage.getItem('lastUpdate') ? parseInt(localStorage.getItem('lastUpdate')) : Date.now();
+        let sawabPerTap = localStorage.getItem('sawabPerTap') ? parseInt(localStorage.getItem('sawabPerTap')) : 1;
+        let upgradeCost = localStorage.getItem('upgradeCost') ? parseInt(localStorage.getItem('upgradeCost')) : 50;
+        let collectedProphets = localStorage.getItem('collectedProphets') ? JSON.parse(localStorage.getItem('collectedProphets')) : [];
+
+        // PAYG'AMBARLAR RO'YXATI (TARTIB BILAN)
+        const prophets = [
+            { id: 1, name: "Odam (Od) payg'ambar", arabic: "آدم", cost: 1000, emoji: "👤", description: "Birinchi odam va payg'ambar", type: "prophet", rarity: "common", order: 1 },
+            { id: 2, name: "Idris (Axnuw) payg'ambar", arabic: "إدريس", cost: 1500, emoji: "📚", description: "Ilmli payg'ambar", type: "prophet", rarity: "common", order: 2 },
+            { id: 3, name: "Nuh (Nux) payg'ambar", arabic: "نوح", cost: 2000, emoji: "🚢", description: "Kema qurgan payg'ambar", type: "prophet", rarity: "common", order: 3 },
+            { id: 4, name: "Hud payg'ambar", arabic: "هود", cost: 2500, emoji: "🏜️", description: "Od qavmi payg'ambari", type: "prophet", rarity: "common", order: 4 },
+            { id: 5, name: "Solih (Salix) payg'ambar", arabic: "صالح", cost: 3000, emoji: "🐫", description: "Tuya mo'jizasi", type: "prophet", rarity: "rare", order: 5 },
+            { id: 6, name: "Ibrohim (Ibrohim) payg'ambar", arabic: "إبراهيم", cost: 4000, emoji: "🕋", description: "Xalilulloh", type: "prophet", rarity: "rare", order: 6 },
+            { id: 7, name: "Lut (Lut) payg'ambar", arabic: "لوط", cost: 3500, emoji: "🏘️", description: "Lut qavmi payg'ambari", type: "prophet", rarity: "rare", order: 7 },
+            { id: 8, name: "Ismoil (Ismoil) payg'ambar", arabic: "إسماعيل", cost: 4500, emoji: "🐪", description: "Zabihulloh", type: "prophet", rarity: "rare", order: 8 },
+            { id: 9, name: "Ishoq (Ishoq) payg'ambar", arabic: "إسحاق", cost: 4000, emoji: "👨‍👦", description: "Ibrohimning o'g'li", type: "prophet", rarity: "rare", order: 9 },
+            { id: 10, name: "Yoqub (Yoqub) payg'ambar", arabic: "يعقوب", cost: 5000, emoji: "👨‍👩‍👧‍👦", description: "Isroil", type: "prophet", rarity: "epic", order: 10 },
+            { id: 11, name: "Yusuf (Yusuf) payg'ambar", arabic: "يوسف", cost: 6000, emoji: "👑", description: "Go'zal yuzli", type: "prophet", rarity: "epic", order: 11 },
+            { id: 12, name: "Ayyub (Ayyub) payg'ambar", arabic: "أيوب", cost: 5500, emoji: "💪", description: "Sabrli payg'ambar", type: "prophet", rarity: "epic", order: 12 },
+            { id: 13, name: "Shuayb (Shuayb) payg'ambar", arabic: "شعيب", cost: 5000, emoji: "⚖️", description: "Tartib payg'ambari", type: "prophet", rarity: "epic", order: 13 },
+            { id: 14, name: "Muso (Muso) payg'ambar", arabic: "موسى", cost: 8000, emoji: "📜", description: "Kalimulloh", type: "prophet", rarity: "epic", order: 14 },
+            { id: 15, name: "Horun (Horun) payg'ambar", arabic: "هارون", cost: 7000, emoji: "🗣️", description: "Musoning ukasi", type: "prophet", rarity: "epic", order: 15 },
+            { id: 16, name: "Dovud (Dovud) payg'ambar", arabic: "داود", cost: 9000, emoji: "🎵", description: "Zabur olgan", type: "prophet", rarity: "legendary", order: 16 },
+            { id: 17, name: "Sulaymon (Sulaymon) payg'ambar", arabic: "سليمان", cost: 10000, emoji: "👑", description: "Hukmdor payg'ambar", type: "prophet", rarity: "legendary", order: 17 },
+            { id: 18, name: "Ilyos (Ilyos) payg'ambar", arabic: "إلياس", cost: 8500, emoji: "🌩️", description: "Olov payg'ambari", type: "prophet", rarity: "legendary", order: 18 },
+            { id: 19, name: "Alyasa (Alyasa) payg'ambar", arabic: "اليسع", cost: 8000, emoji: "🌱", description: "Ilyosning vorisi", type: "prophet", rarity: "legendary", order: 19 },
+            { id: 20, name: "Yunus (Yunus) payg'ambar", arabic: "يونس", cost: 7500, emoji: "🐋", description: "Balik qornidagi payg'ambar", type: "prophet", rarity: "legendary", order: 20 },
+            { id: 21, name: "Zakariyo (Zakariyo) payg'ambar", arabic: "زكريا", cost: 7000, emoji: "🙏", description: "Yahyo otasi", type: "prophet", rarity: "legendary", order: 21 },
+            { id: 22, name: "Yahyo (Yahyo) payg'ambar", arabic: "يحيى", cost: 6500, emoji: "💧", description: "Pokiza payg'ambar", type: "prophet", rarity: "legendary", order: 22 },
+            { id: 23, name: "Iso (Iso) payg'ambar", arabic: "عيسى", cost: 12000, emoji: "✝️", description: "Ruhulloh", type: "prophet", rarity: "mythical", order: 23 },
+            { id: 24, name: "Muhammad (s.a.v.) payg'ambar", arabic: "مُحَمَّد", cost: 50000, emoji: "🕋", description: "Xotaman-nabiyyin", type: "prophet", rarity: "divine", order: 24 }
+        ];
+
+        const zikrlar = [
+            "سُبْحَانَ اللَّهِ", "الْحَمْدُ لِلَّهِ", "اللهُ أَكْبَرُ",
+            "لَا إِلَهَ إِلَّا اللَّهُ", "أَسْتَغْفِرُ اللَّهَ",
+            "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", "سُبْحَانَ اللَّهِ الْعَظِيمِ",
+            "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ", "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ"
+        ];
+
+        function loadGame() {
+            updateDisplay();
+            updateProphetsProgress();
+            updateAutoSavobDisplay();
+            updateOfflineSawab();
+
+            setInterval(addAutoSawab, 1000);
+            setInterval(updateZikr, 5000);
+        }
+
+        function updateDisplay() {
+            document.getElementById('sawab').textContent = formatNumber(sawab);
+            document.getElementById('cardsCount').textContent = collectedProphets.length;
+            document.getElementById('level').textContent = level;
+            document.getElementById('autoSavobText').textContent = `Har soniya: +${autoSawabPerSecond} savob`;
+
+            const autoBox = document.getElementById('autoSavob');
+            autoBox.style.display = autoSawabPerSecond > 0 ? 'flex' : 'none';
+        }
+
+        function formatNumber(num) {
+            if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
+            if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
+            return num.toString();
+        }
+
+        function tapMasjid() {
+            sawab += sawabPerTap;
+            taps++;
+
+            createTapAnimation(sawabPerTap);
+            updateDisplay();
+            updateProphetsProgress();
+            tryGetProphet();
+            showNotification(`✅ +${sawabPerTap} savob!`);
+            saveGame();
+        }
+
+        function createTapAnimation(points) {
+            const gate = document.getElementById('gate');
+            const animation = document.createElement('div');
+            animation.className = 'tap-animation';
+            animation.textContent = `+${points}`;
+            animation.style.left = (Math.random() * 60 + 20) + '%';
+            animation.style.top = (Math.random() * 40 + 30) + '%';
+
+            gate.appendChild(animation);
+            setTimeout(() => animation.remove(), 2000);
+        }
+
+        function tryGetProphet() {
+            if (taps % 100 === 0 && Math.random() < 0.3) {
+                const availableProphets = prophets.filter(p => !collectedProphets.includes(p.id));
+                if (availableProphets.length > 0) {
+                    const randomProphet = availableProphets[Math.floor(Math.random() * availableProphets.length)];
+                    collectedProphets.push(randomProphet.id);
+                    autoSawabPerSecond += 5;
+                    showNotification(`🎉 ${randomProphet.name} payg'ambarni topdingiz! +5 savob/soniya`);
+                    updateDisplay();
+                    updateProphetsProgress();
+                    saveGame();
+                }
+            }
+        }
+
+        function getNextProphet() {
+            for (let i = 0; i < prophets.length; i++) {
+                if (!collectedProphets.includes(prophets[i].id)) return prophets[i];
+            }
+            return null;
+        }
+
+        function updateProphetsProgress() {
+            const nextProphet = getNextProphet();
+
+            document.getElementById('nextProphet').textContent =
+                nextProphet ? nextProphet.name : "Barcha payg'ambarlar topildi!";
+
+            if (nextProphet) {
+                const progress = (sawab / nextProphet.cost) * 100;
+                const progressPercent = Math.min(progress, 100);
+                document.getElementById('progressFill').style.width = progressPercent + "%";
+                document.getElementById('progressText').textContent = Math.floor(progressPercent) + "%";
+                document.getElementById('neededSawab').textContent =
+                    formatNumber(Math.max(nextProphet.cost - sawab, 0)) + " savob kerak";
+            } else {
+                document.getElementById('progressFill').style.width = "100%";
+                document.getElementById('progressText').textContent = "100%";
+                document.getElementById('neededSawab').textContent = "Barchasi to'plandi!";
+            }
+        }
+
+        function addAutoSawab() {
+            if (autoSawabPerSecond > 0) {
+                sawab += autoSawabPerSecond;
+                updateDisplay();
+                updateProphetsProgress();
+                saveGame();
+            }
+        }
+
+        function updateAutoSavobDisplay() {
+            document.getElementById('autoSavobText').textContent =
+                `Har soniya: +${autoSawabPerSecond} savob`;
+        }
+
+        function updateZikr() {
+            const randomZikr = zikrlar[Math.floor(Math.random() * zikrlar.length)];
+            document.getElementById('kalima').textContent = randomZikr;
+        }
+
+        function updateOfflineSawab() {
+            const now = Date.now();
+            const timePassed = Math.floor((now - lastUpdate) / 1000);
+
+            if (timePassed > 0) {
+                const offlineSawab = timePassed * autoSawabPerSecond;
+                if (offlineSawab > 0) {
+                    sawab += offlineSawab;
+                    showNotification(`📱 ${timePassed} soniyada: +${offlineSawab} savob`);
+                    updateDisplay();
+                    updateProphetsProgress();
+                    saveGame();
+                }
+            }
+
+            lastUpdate = now;
+            localStorage.setItem('lastUpdate', lastUpdate);
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+
+        // ==================== MODAL OYNALARI ====================
+        function createModal(title, content) {
+            const oldModal = document.querySelector('.modal-overlay');
+            if (oldModal) oldModal.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">${title}</div>
+                        <button class="close-btn" onclick="closeModal()">✕ YOPISH</button>
+                    </div>
+                    ${content}
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+            document.body.style.overflow = 'auto';
+        }
+
+        function showProphets() {
+            createModal("🕌 PAYG'AMBARLAR KOLLEKTSIYASI", `
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="font-size:18px;color:#ffd700;margin-bottom:6px;">
+                        Topilgan: ${collectedProphets.length}/${prophets.length}
+                    </div>
+                    <div style="font-size:14px;color:#ddd;">
+                        Har bir payg'ambar +5 savob/har soniya beradi
+                    </div>
+                </div>
+                <div class="cards-grid" id="prophetsGrid"></div>
+            `);
+
+            const prophetsGrid = document.getElementById('prophetsGrid');
+            prophetsGrid.innerHTML = '';
+
+            const rarityColors = {
+                common: '#4caf50',
+                rare: '#2196f3',
+                epic: '#9c27b0',
+                legendary: '#ff9800',
+                mythical: '#ff5722',
+                divine: '#ffd700'
+            };
+
+            prophets.forEach(prophet => {
+                const isCollected = collectedProphets.includes(prophet.id);
+                const card = document.createElement('div');
+                card.className = 'card-item';
+                card.style.opacity = isCollected ? '1' : '0.55';
+
+                card.innerHTML = `
+                    <div class="card-emoji">${prophet.emoji}</div>
+                    <div class="card-name">${prophet.name}</div>
+                    <div class="card-arabic">${prophet.arabic}</div>
+                    <div class="card-type">${prophet.description}</div>
+                    <div class="card-rarity"
+                         style="background:${rarityColors[prophet.rarity] || '#666'}">
+                        ${prophet.rarity.toUpperCase()}
+                    </div>
+                    ${isCollected
+                        ? '<div class="card-price">✅ TOPILGAN</div>'
+                        : `<div class="card-price">${formatNumber(prophet.cost)} savob</div>
+                           <button class="buy-btn" onclick="buyProphet(${prophet.id})"
+                               ${sawab >= prophet.cost ? '' : 'disabled'}>
+                               SOTIB OLISH
+                           </button>`
+                    }
+                `;
+                prophetsGrid.appendChild(card);
+            });
+        }
+
+        function showShop() {
+            createModal("🛒 DO'KON", `
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="font-size:22px;color:#ffd700;margin-bottom:6px;">
+                        💰 ${formatNumber(sawab)} savob
+                    </div>
+                </div>
+                <div class="cards-grid">
+                    <div class="card-item">
+                        <div class="card-emoji">👆</div>
+                        <div class="card-name">BOSISH KUCHI</div>
+                        <div class="card-type">Har bosishda ko'proq savob</div>
+                        <div class="card-rarity" style="background:#4caf50;">
+                            Hozir: +${sawabPerTap}
+                        </div>
+                        <div class="card-price">${formatNumber(upgradeCost)} savob</div>
+                        <button class="buy-btn" onclick="upgradeTap()" ${sawab >= upgradeCost ? '' : 'disabled'}>
+                            YAXSHILASH
+                        </button>
+                    </div>
+
+                    <div class="card-item">
+                        <div class="card-emoji">🕌</div>
+                        <div class="card-name">KATTA MASJID</div>
+                        <div class="card-type">+10 avtomatik savob/soniya</div>
+                        <div class="card-rarity" style="background:#2196f3;">
+                            LEGENDARY
+                        </div>
+                        <div class="card-price">${formatNumber(25000)} savob</div>
+                        <button class="buy-btn" onclick="buyMasjid()" ${sawab >= 25000 ? '' : 'disabled'}>
+                            SOTIB OLISH
+                        </button>
+                    </div>
+
+                    <div class="card-item">
+                        <div class="card-emoji">📿</div>
+                        <div class="card-name">ZIKR TASBIHI</div>
+                        <div class="card-type">Avtomatik savobni ikki barobar oshiradi</div>
+                        <div class="card-rarity" style="background:#9c27b0;">
+                            EPIC
+                        </div>
+                        <div class="card-price">${formatNumber(50000)} savob</div>
+                        <button class="buy-btn" onclick="buyTasbih()" ${sawab >= 50000 ? '' : 'disabled'}>
+                            SOTIB OLISH
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function showProfile() {
+            const totalSawab = sawab + (taps * sawabPerTap) + (autoSawabPerSecond * 3600);
+
+            createModal("👤 PROFIL", `
+                <div style="text-align:center;margin-bottom:18px;">
+                    <div style="font-size:24px;color:#ffd700;margin-bottom:8px;">
+                        Islomiy o'yinchi
+                    </div>
+                    <div style="font-size:40px;margin-bottom:12px;">🕋</div>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.08);padding:16px;border-radius:14px;margin-bottom:16px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span>Daraja:</span>
+                        <span style="color:#ffd700;font-weight:700;">${level}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span>Umumiy bosishlar:</span>
+                        <span style="color:#ffd700;font-weight:700;">${formatNumber(taps)}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span>Bosish kuchi:</span>
+                        <span style="color:#ffd700;font-weight:700;">+${sawabPerTap} savob/bosish</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span>Avtomatik savob:</span>
+                        <span style="color:#ffd700;font-weight:700;">+${autoSawabPerSecond} savob/soniya</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span>Topilgan payg'ambarlar:</span>
+                        <span style="color:#ffd700;font-weight:700;">
+                            ${collectedProphets.length}/${prophets.length}
+                        </span>
+                    </div>
+                </div>
+
+                <div style="background:rgba(255,215,0,0.08);padding:16px;border-radius:14px;border:1px solid #ffd700;">
+                    <div style="text-align:center;color:#ffd700;font-weight:700;margin-bottom:8px;">
+                        STATISTIKA
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span>Jami savob (taxmin):</span>
+                        <span style="color:#4caf50;font-weight:700;">${formatNumber(totalSawab)}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                        <span>O'yin vaqti (taxmin):</span>
+                        <span style="color:#2196f3;font-weight:700;">
+                            ${formatNumber(Math.floor(taps / 10))} daqiqa
+                        </span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span>O'rtacha tezlik:</span>
+                        <span style="color:#9c27b0;font-weight:700;">
+                            ${formatNumber(Math.floor(taps / Math.max(1, level)))} / daraja
+                        </span>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="resetGame()" style="background:#ff4444;margin-top:18px;width:100%;">
+                    🔄 O'YINNI QAYTA BOSHLASH
+                </button>
+            `);
+        }
+
+        function showStats() {
+            createModal("📊 STATISTIKA", `
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="font-size:20px;color:#ffd700;margin-bottom:6px;">
+                        O'yin statistikasi
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
+                    <div style="background:rgba(76,175,80,0.18);padding:12px;border-radius:12px;text-align:center;">
+                        <div style="font-size:26px;color:#4caf50;">${formatNumber(taps)}</div>
+                        <div style="font-size:12px;color:#ccc;">Umumiy bosish</div>
+                    </div>
+                    <div style="background:rgba(33,150,243,0.18);padding:12px;border-radius:12px;text-align:center;">
+                        <div style="font-size:26px;color:#2196f3;">${formatNumber(sawab)}</div>
+                        <div style="font-size:12px;color:#ccc;">Joriy savob</div>
+                    </div>
+                    <div style="background:rgba(156,39,176,0.18);padding:12px;border-radius:12px;text-align:center;">
+                        <div style="font-size:26px;color:#9c27b0;">${formatNumber(autoSawabPerSecond)}/s</div>
+                        <div style="font-size:12px;color:#ccc;">Avtomatik savob</div>
+                    </div>
+                    <div style="background:rgba(255,152,0,0.18);padding:12px;border-radius:12px;text-align:center;">
+                        <div style="font-size:26px;color:#ff9800;">${level}</div>
+                        <div style="font-size:12px;color:#ccc;">Daraja</div>
+                    </div>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.08);padding:16px;border-radius:14px;margin-bottom:16px;">
+                    <div style="color:#ffd700;margin-bottom:10px;text-align:center;">
+                        PAYG'AMBARLAR USTUNI
+                    </div>
+                    <div style="height:200px;display:flex;align-items:flex-end;gap:4px;border-bottom:1px solid #ffd700;padding-bottom:8px;">
+                        ${prophets.map(p => `
+                            <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+                                <div style="width:100%;background:${collectedProphets.includes(p.id) ? '#4caf50' : '#555'};
+                                            height:${collectedProphets.includes(p.id) ? 150 : 50}px;
+                                            border-radius:5px 5px 0 0;">
+                                </div>
+                                <div style="font-size:9px;margin-top:4px;color:#ccc;">${p.id}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="color:#ccc;font-size:12px;text-align:center;margin-top:10px;">
+                    Oxirgi yangilanish: ${new Date(lastUpdate).toLocaleDateString('uz-UZ')}
+                </div>
+            `);
+        }
+
+        // ==================== DO'KON FUNKSIYALARI ====================
+        function buyProphet(prophetId) {
+            const prophet = prophets.find(p => p.id === prophetId);
+            if (!prophet || collectedProphets.includes(prophetId)) return;
+
+            if (sawab >= prophet.cost) {
+                sawab -= prophet.cost;
+                collectedProphets.push(prophetId);
+                autoSawabPerSecond += 5;
+                level = Math.floor(collectedProphets.length / 3) + 1;
+
+                showNotification(`✅ ${prophet.name} sotib olindi! +5 savob/soniya`);
+                updateDisplay();
+                updateProphetsProgress();
+                saveGame();
+
+                setTimeout(showProphets, 400);
+            }
+        }
+
+        function upgradeTap() {
+            if (sawab >= upgradeCost) {
+                sawab -= upgradeCost;
+                sawabPerTap++;
+                upgradeCost = Math.floor(upgradeCost * 1.5);
+                level = Math.floor(sawabPerTap / 5) + 1;
+
+                showNotification(`✅ Bosish kuchi oshdi! Endi: +${sawabPerTap} savob/bosish`);
+                updateDisplay();
+                saveGame();
+
+                setTimeout(showShop, 400);
+            }
+        }
+
+        function buyMasjid() {
+            const cost = 25000;
+            if (sawab >= cost) {
+                sawab -= cost;
+                autoSawabPerSecond += 10;
+
+                showNotification("✅ Katta masjid qurildi! +10 savob/soniya");
+                updateDisplay();
+                saveGame();
+
+                setTimeout(showShop, 400);
+            }
+        }
+
+        function buyTasbih() {
+            const cost = 50000;
+            if (sawab >= cost) {
+                sawab -= cost;
+                autoSawabPerSecond *= 2;
+
+                showNotification("✅ Zikr tasbihi olindi! Auto savob 2x");
+                updateDisplay();
+                saveGame();
+
+                setTimeout(showShop, 400);
+            }
+        }
+
+        // ==================== YORDAMCHI FUNKSIYALAR ====================
+        function changeLanguage() {
+            showNotification("Hozircha faqat O'zbek tili mavjud. Tez orada boshqa tillar ham qo'shiladi inshaAlloh!");
+        }
+
+        function openBot() {
+            showNotification("🤖 Botga qaytish...");
+            setTimeout(() => {
+                window.location.href = "https://t.me/islomiy_tap_game_bot";
+            }, 900);
+        }
+
+        function resetGame() {
+            if (confirm("Rostdan ham o'yinni nol holatga qaytarmoqchimisiz? Barcha ma'lumotlar o'chadi!")) {
+                localStorage.clear();
+                sawab = 0;
+                level = 1;
+                taps = 0;
+                autoSawabPerSecond = 0;
+                collectedProphets = [];
+                sawabPerTap = 1;
+                upgradeCost = 50;
+                lastUpdate = Date.now();
+
+                showNotification("♻️ O'yin qayta boshlandi!");
+                updateDisplay();
+                updateProphetsProgress();
+                closeModal();
+                saveGame();
+            }
+        }
+
+        function saveGame() {
+            localStorage.setItem('sawab', sawab);
+            localStorage.setItem('level', level);
+            localStorage.setItem('taps', taps);
+            localStorage.setItem('autoSawab', autoSawabPerSecond);
+            localStorage.setItem('collectedProphets', JSON.stringify(collectedProphets));
+            localStorage.setItem('sawabPerTap', sawabPerTap);
+            localStorage.setItem('upgradeCost', upgradeCost);
+            localStorage.setItem('lastUpdate', lastUpdate);
+        }
+
+        // ==================== O'YINNI BOSHLASH ====================
+        document.addEventListener('DOMContentLoaded', function () {
+            loadGame();
+            setInterval(saveGame, 30000);
+            window.addEventListener('beforeunload', saveGame);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+
+    <!-- Telegram Mini-App Integration -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+    </script>
+
+</body>
+</html>
