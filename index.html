@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islamic Tap Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a5e1a 0%, #0d3b0d 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #d4af37;
+        }
+        
+        .header h1 { 
+            font-size: 28px; 
+            color: #d4af37;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 24px; color: #d4af37; font-weight: bold; }
+        .stat-label { font-size: 14px; opacity: 0.8; }
+        
+        .tap-area {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 50%;
+            margin: 30px auto;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid #d4af37;
+            transition: transform 0.1s;
+        }
+        
+        .tap-area:active { transform: scale(0.95); }
+        
+        .arabic-text {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .meaning { font-size: 18px; margin-bottom: 5px; }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid #d4af37;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover { background: rgba(212, 175, 55, 0.3); }
+        
+        .shop-btn { background: linear-gradient(45deg, #d4af37, #b8860b); }
+        
+        .cards-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .card {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕌 Islamic Tap Game</h1>
+            <p>Tap Islamic phrases, earn Sawab, collect cards!</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="sawab">0</div>
+                <div class="stat-label">Sawab</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="clicks">0</div>
+                <div class="stat-label">Clicks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="cards">0</div>
+                <div class="stat-label">Cards</div>
+            </div>
+        </div>
+        
+        <div class="tap-area" id="tapButton">
+            <div style="text-align: center;">
+                <div class="arabic-text" id="arabicPhrase">سُبْحَانَ ٱللَّٰهِ</div>
+                <div class="meaning" id="englishMeaning">Glory be to Allah</div>
+                <div style="margin-top: 10px;">👆 TAP HERE</div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn" onclick="showCards()">📚 My Cards</button>
+            <button class="btn shop-btn" onclick="showShop()">🛒 Shop</button>
+            <button class="btn" onclick="showProfile()">👤 Profile</button>
+            <button class="btn" onclick="showLeaderboard()">🏆 Top</button>
+        </div>
+        
+        <div class="cards-section" id="cardsSection">
+            <h3>📚 Your Cards</h3>
+            <div class="card-grid" id="cardsGrid">
+                <!-- Cards will appear here -->
+            </div>
+        </div>
+        
+        <div class="notification" id="notification">
+            +1 Sawab earned!
+        </div>
+    </div>
+    
+    <script>
+        // Islamic phrases database
+        const phrases = [
+            { arabic: "سُبْحَانَ ٱللَّٰهِ", english: "Glory be to Allah", sawab: 1 },
+            { arabic: "ٱلْحَمْدُ لِلَّٰهِ", english: "Praise be to Allah", sawab: 1 },
+            { arabic: "لَا إِلَٰهَ إِلَّا ٱللَّٰهُ", english: "There is no god but Allah", sawab: 1 },
+            { arabic: "ٱللَّٰهُ أَكْبَرُ", english: "Allah is the Greatest", sawab: 1 },
+            { arabic: "أَسْتَغْفِرُ ٱللَّٰهَ", english: "I seek forgiveness from Allah", sawab: 1 },
+            { arabic: "إِنَّا لِلَّٰهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ", english: "To Allah we belong and to Him we return", sawab: 2 }
+        ];
+        
+        // Game state
+        let sawab = 0;
+        let clicks = 0;
+        let cards = [];
+        
+        // Initialize Telegram Web App
+        let tg = window.Telegram.WebApp;
+        
+        // Initialize game
+        function initGame() {
+            // Expand to full screen
+            tg.expand();
+            
+            // Set up tap button
+            document.getElementById('tapButton').addEventListener('click', tap);
+            
+            // Load initial data
+            updateDisplay();
+        }
+        
+        // Tap function
+        function tap() {
+            // Get random phrase
+            const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+            
+            // Update display
+            document.getElementById('arabicPhrase').textContent = phrase.arabic;
+            document.getElementById('englishMeaning').textContent = phrase.english;
+            
+            // Update stats
+            sawab += phrase.sawab;
+            clicks++;
+            
+            updateDisplay();
+            
+            // Show notification
+            showNotification(`+${phrase.sawab} Sawab!`);
+            
+            // Send data to bot backend (in real app)
+            if (tg.initDataUnsafe.user) {
+                tg.sendData(JSON.stringify({
+                    action: 'tap',
+                    sawab: phrase.sawab,
+                    user_id: tg.initDataUnsafe.user.id
+                }));
+            }
+        }
+        
+        // Update display
+        function updateDisplay() {
+            document.getElementById('sawab').textContent = sawab;
+            document.getElementById('clicks').textContent = clicks;
+            document.getElementById('cards').textContent = cards.length;
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+        
+        // Show cards
+        function showCards() {
+            const section = document.getElementById('cardsSection');
+            const grid = document.getElementById('cardsGrid');
+            
+            if (section.style.display === 'none' || section.style.display === '') {
+                section.style.display = 'block';
+                
+                // Mock cards for demo
+                grid.innerHTML = `
+                    <div class="card">
+                        <div style="font-size: 24px;">📖</div>
+                        <div>Al-Fatihah</div>
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 24px;">👳</div>
+                        <div>Adam (AS)</div>
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 24px;">🆚</div>
+                        <div>Abu Bakr</div>
+                    </div>
+                `;
+            } else {
+                section.style.display = 'none';
+            }
+        }
+        
+        // Show shop
+        function showShop() {
+            tg.showAlert("🛒 Islamic Card Shop\n\nComing soon! Use the bot for now.");
+        }
+        
+        // Show profile
+        function showProfile() {
+            tg.showAlert(`👤 Your Profile\n\nSawab: ${sawab}\nClicks: ${clicks}\nCards: ${cards.length}\nLevel: ${Math.floor(sawab/100) + 1}`);
+        }
+        
+        // Show leaderboard
+        function showLeaderboard() {
+            tg.showAlert("🏆 Leaderboard\n\nComing soon! Check bot for rankings.");
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
